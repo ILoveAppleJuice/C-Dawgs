@@ -1,5 +1,4 @@
-    # awesome program / not so awsome program -asiah
-    #allah
+    # awesome program 
 
 import json
 import time
@@ -7,9 +6,7 @@ import math
 # imports all yo stuffz
 from vex import *
 from vex import Motor 
-#sys.run_in_thread(lambda: print("test")) # idk WHY THE FREAK this not working
- 
-    # import threading
+
 
 def clamp(n, min, max):
     if n < min:
@@ -19,10 +16,10 @@ def clamp(n, min, max):
     else:
         return n
 
-    # quick fix to define controller first cause its actually defined after th drive train class
+# quick fix to define controller first cause its actually defined after th drive train class
 controller:Controller = None
 
-    # im creating the drive train class here because vex is horrible and cant load modules
+# im creating the drive train class here because vex is horrible and cant load modules
 
 r = 2
 def AngleToDistance(angle):
@@ -234,9 +231,6 @@ class DriveTrainCool():
             
 
         self.update_velocities()
-
-#im just doing my job
-#     #no way ethan just said the n word + watt
 
 
 brain=Brain()
