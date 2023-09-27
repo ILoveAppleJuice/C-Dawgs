@@ -219,22 +219,26 @@ class DriveTrainCool():
 
         pass
 
+    def playback_update(self):
+        if self.playback_enabled:
+            if self.curr_playback_index <= len(self.playback_inputs)-1:
+                curr_input = self.playback_inputs[self.curr_playback_index]
+
+                if self.playback_timer.time() > curr_input[2]:
+                    self.curr_playback_index += 1
+                    print(self.playback_inputs[self.curr_playback_index])
+
+                self.set_drive_velocity(curr_input[0])
+                self.set_turn_velocity(curr_input[1])
+
+    
     def Update(self):
         for i in range(len(self.motor_velocities)):
             self.motor_velocities[i] = 0
             
         self.process_controller_inputs()
         self.process_instructions()
-
-        if self.playback_enabled:
-            if self.curr_playback_index <= len(self.playback_inputs)-1:
-                curr_input = self.playback_inputs[self.curr_playback_index]
-                
-                if self.playback_timer.time() > curr_input[2]:
-                    self.curr_playback_index += 1
-
-                self.set_drive_velocity(curr_input[0])
-                self.set_turn_velocity(curr_input[1])
+        self.playback_update()
             
 
             
@@ -323,11 +327,7 @@ def Test():
     drivetrainCool.toggle_recording_inputs(False)
 
     recording_json = drivetrainCool.get_recorded_inputs_json()
-    brain.screen.print(drivetrainCool.get_recorded_inputs())
-    print("test")
     print(drivetrainCool.get_recorded_inputs())
-     
-     
     
     #drivetrainCool.drive_for(time_length=1.0,velocity=40)
     time.sleep(2)
