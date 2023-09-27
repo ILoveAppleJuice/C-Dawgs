@@ -1,4 +1,5 @@
-    # awesome program 
+    # awesome program / not so awsome program -asiah
+    #allah
 
 import json
 import time
@@ -6,7 +7,9 @@ import math
 # imports all yo stuffz
 from vex import *
 from vex import Motor 
-
+#sys.run_in_thread(lambda: print("test")) # idk WHY THE FREAK this not working
+ 
+    # import threading
 
 def clamp(n, min, max):
     if n < min:
@@ -16,10 +19,10 @@ def clamp(n, min, max):
     else:
         return n
 
-# quick fix to define controller first cause its actually defined after the drive train class
+    # quick fix to define controller first cause its actually defined after th drive train class
 controller:Controller = None
 
-# im creating the drive train class here because vex is horrible and cant load modules
+    # im creating the drive train class here because vex is horrible and cant load modules
 
 r = 2
 def AngleToDistance(angle):
@@ -30,7 +33,7 @@ def DistanceToAngle(dist):
 
 
 
-#basically trying to replicate the default vex drive train class but worse and can use more than 2/4 wheels
+    #basiclaly trying to replicat the default DRive train class but worse and can use more than 2 wheels
 class DriveTrainCool():
 
     #constructor function
@@ -43,10 +46,12 @@ class DriveTrainCool():
         self.instruction_cache = []
 
         self.recorded_inputs = []
-        self.record_start = 0
         self.last_input = None
         self.recording_inputs = False
+        self.record_timer = Timer()
 
+        self.playback_timer = Timer()
+        self.playback_enabled = False
         self.playback_inputs = []
 
         for motorIndex in range(len(self.motors)):
@@ -174,15 +179,19 @@ class DriveTrainCool():
         
         if self.recording_inputs:
             if input != self.last_input:
-                self.recorded_inputs.append([forward_input,turn_input,time.time() - self.record_start])
+                #print(self.record_start)
+                self.recorded_inputs.append([forward_input,turn_input,self.record_timer.time()])
         
         self.last_input = input
+
         
     def toggle_recording_inputs(self, toggle:bool):
         self.recording_inputs = toggle
 
         if toggle:
-            self.record_start = time.time()
+            self.record_timer.reset()
+        else:
+            pass
 
     def get_recorded_inputs(self):
         return self.recorded_inputs
@@ -195,14 +204,14 @@ class DriveTrainCool():
         self.playback_recording(inputs)
 
     def playback_recording(self,inputs:list):
-        self.playback_start_time = time.time()
+        self.playback_timer.reset()
         self.playback_inputs = inputs
         self.playback_enabled = True
 
         self.curr_playback_index = 0
 
         last_input = inputs[len(inputs)-1]
-        while time.time()-self.playback_start_time < last_input[2]:
+        while self.playback_timer.time() < last_input[2]:
             pass
             
             
@@ -220,8 +229,8 @@ class DriveTrainCool():
         if self.playback_enabled:
             if self.curr_playback_index <= len(self.playback_inputs)-1:
                 curr_input = self.playback_inputs[self.curr_playback_index]
-
-                if time.time()-self.playback_start_time > curr_input[2]:
+                
+                if self.playback_timer.time() > curr_input[2]:
                     self.curr_playback_index += 1
 
                 self.set_drive_velocity(curr_input[0])
@@ -233,7 +242,9 @@ class DriveTrainCool():
         self.update_velocities()
 
 
+
 brain=Brain()
+
 
 # left motors first then right
 motorPorts = [20,15,10,5]
@@ -312,8 +323,9 @@ def Test():
     drivetrainCool.toggle_recording_inputs(False)
 
     recording_json = drivetrainCool.get_recorded_inputs_json()
-    brain.screen.print(recording_json)
-
+    brain.screen.print(drivetrainCool.get_recorded_inputs())
+    print("test")
+    print(drivetrainCool.get_recorded_inputs())
      
      
     
