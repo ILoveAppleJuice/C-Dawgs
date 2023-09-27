@@ -1,5 +1,4 @@
-    # awesome program / not so awsome program -asiah
-    #allah
+
 
 import json
 import time
@@ -7,9 +6,7 @@ import math
 # imports all yo stuffz
 from vex import *
 from vex import Motor 
-#sys.run_in_thread(lambda: print("test")) # idk WHY THE FREAK this not working
- 
-    # import threading
+
 
 def clamp(n, min, max):
     if n < min:
