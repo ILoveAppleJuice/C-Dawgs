@@ -1,9 +1,9 @@
+# main program
 
 
 import json
 import time
 import math
-# imports all yo stuffz
 from vex import *
 from vex import Motor 
 
@@ -19,7 +19,6 @@ def clamp(n, min, max):
     # quick fix to define controller first cause its actually defined after th drive train class
 controller:Controller = None
 
-    # im creating the drive train class here because vex is horrible and cant load modules
 
 r = 2
 def AngleToDistance(angle):
