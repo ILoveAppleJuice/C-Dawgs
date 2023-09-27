@@ -16,7 +16,7 @@ def clamp(n, min, max):
     else:
         return n
 
-# quick fix to define controller first cause its actually defined after th drive train class
+# quick fix to define controller first cause its actually defined after the drive train class
 controller:Controller = None
 
 # im creating the drive train class here because vex is horrible and cant load modules
@@ -30,7 +30,7 @@ def DistanceToAngle(dist):
 
 
 
-    #basiclaly trying to replicat the default DRive train class but worse and can use more than 2 wheels
+#basically trying to replicate the default vex drive train class but worse and can use more than 2/4 wheels
 class DriveTrainCool():
 
     #constructor function
