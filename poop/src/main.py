@@ -239,9 +239,6 @@ class DriveTrainCool():
         self.process_controller_inputs()
         self.process_instructions()
         self.playback_update()
-            
-
-            
 
         self.update_velocities()
 
@@ -254,27 +251,15 @@ brain=Brain()
 motorPorts = [20,15,10,5]
 motors = []
 
+# creating a list of motor objects to pass into our custom drive train class
 for i in motorPorts:
     motors.append(Motor(i-1))
 
 
 controller = Controller(ControllerType.PRIMARY)
-drivetrain = DriveTrain(motors[0],motors[1])
 drivetrainCool = DriveTrainCool(motors)
 
 
-    # maybe create a custom drivetrain class actually because we can calculate all the stuff with math
-    # wheels are 4 inches in diameter, 2 inches radius
-
-
-    # were not going to be using a drive train for the driver control because it is limited in its control 
-    # of each motor so it cant like turn while moving forward.
-    # so were gonna have a list of motors to update their velocities in a loop so we can individually control 
-    # each motor
-
-    # were gonna drive train for auton though because of its precise measurement thingies
-
-    # autonomous stuff
 def Autonomous():
     global drivetrainCool
 
@@ -292,17 +277,6 @@ def Autonomous():
     drivetrainCool.drive_for(time_length=1,velocity=100)
 
     #   drivetrain.drive_for(DirectionType.FORWARD,10,DistanceUnits.IN)
-
-
-
-
-def Update():
-
-    #drivetrainCool.process_controller_inputs()
-    #drivetrainCool.process_instructions()
-    #drivetrainCool.update_velocities()
-    drivetrainCool.Update()
-    pass
 
 
 # stuff for driver control
@@ -327,7 +301,8 @@ def Test():
     drivetrainCool.toggle_recording_inputs(False)
 
     recording_json = drivetrainCool.get_recorded_inputs_json()
-    print(drivetrainCool.get_recorded_inputs())
+    
+    print(recording_json)
     
     #drivetrainCool.drive_for(time_length=1.0,velocity=40)
     time.sleep(2)
@@ -335,12 +310,9 @@ def Test():
     #drivetrainCool.turn_for(time_length=0.7,velocity=-20)
 
 
+
 Test()
 if comp.is_enabled():
     pass
 else:
-    #Test()
-    #Thread(Test)
-    while True:
-        #Update()
-        pass
+    pass
