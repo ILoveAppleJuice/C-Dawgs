@@ -29,7 +29,8 @@ def DistanceToAngle(dist):
 
 
 
-    #basiclaly trying to replicat the default DRive train class but worse and can use more than 2 wheels
+    #basiclaly trying to replicat the default DRive train class can use more than 2/4 wheels
+    # and other features
 class DriveTrainCool():
 
     #constructor function
@@ -92,34 +93,33 @@ class DriveTrainCool():
             
         
     def update_velocities(self):
-        motor: Motor #define empty for type annotations
+        motor: Motor #declare empty variable for type annotations
 
         for motorIndex in range(len(self.get_motors())):
-            motor = self.get_motors()[motorIndex]
+            motor = self.get_motors()[motorIndex]      
 
-            #print(motor.position())
-                
+            # clamp the velocity to a range of -100 to 100 to make sure the motor doesnt overheat
             self.get_motor_velocities()[motorIndex] = clamp(self.get_motor_velocity(motorIndex),-100,100)
             
             
             vel = self.get_motor_velocity(motorIndex)
             motor.set_velocity(vel,VelocityUnits.PERCENT)
             
+            
             if abs(vel) > 0:
-                
                 motor.spin(DirectionType.FORWARD)
             else:
+                # if the velocity is 0, then stop the motor to make movement snappy and responsive
                 motor.set_stopping(BrakeType.HOLD)
-                #self.stop()
             
 
             
 
-        # this is probably an extremely overcomplicated way to do this but basically 
-        # it inserts a dictionary into the list of instructions to process containing info such as 
-        # velocity, start time, etc
-        # the process instructions method then loops through the instructions and does stuff 
-        # removing expired instructions as needed
+    # this is probably an extremely overcomplicated way to do this but basically 
+    # it inserts a dictionary into the list of instructions to process containing info such as 
+    # velocity, start time, etc
+    # the process instructions method then loops through the instructions and does stuff 
+    # removing expired instructions as needed
     def drive_for(self,time_length,velocity):
         time_length = float(time_length)
         self.instruction_cache.append({"end_time":time.time() + time_length,"type":"drive","vel":velocity})
@@ -139,10 +139,8 @@ class DriveTrainCool():
             # and remove the current from the list
             if time.time() >= instruction_info["end_time"]:
                 self.instruction_cache.pop(instruction_index)
-                #self.instruction_cache.remove(instruction_info)
-                #del self.instruction_cache[instruction_index]
-                #continue
             
+            #carry out the action associated with the instruction packet
             if instruction_info["type"] == "drive":
                 self.set_drive_velocity(instruction_info["vel"])
 
@@ -165,18 +163,16 @@ class DriveTrainCool():
 
         self.set_drive_velocity(forward_input)
         self.set_turn_velocity(turn_input)
-
-        if abs(forward_input) <= 0 and abs(turn_input) <= 0:
-            pass
-        else:
-            pass
         
+
         input = [forward_input,turn_input]
         
         if self.recording_inputs:
+            # if recording and the current input is different than the previous recorded input, add the new input into the list
             if input != self.last_input:
-                #print(self.record_start)
-                self.recorded_inputs.append([forward_input,turn_input,self.record_timer.time()])
+                # define a variable called "instruction_packet" that contains the input and time since recording start
+                instruction_packet = [forward_input,turn_input,self.record_timer.time()]
+                self.recorded_inputs.append(instruction_packet)
         
         self.last_input = input
 
@@ -188,33 +184,36 @@ class DriveTrainCool():
             self.record_timer.reset()
         else:
             pass
-
+    
     def get_recorded_inputs(self):
         return self.recorded_inputs
     
     def get_recorded_inputs_json(self):
+        # takes a python object and returns a json encoded string
         return json.dumps(self.get_recorded_inputs())
 
     def playback_json_recording(self,json_str:str):
+        # takes a json encoded string and returns a python object
         inputs = json.loads(json_str)
         self.playback_recording(inputs)
 
     def playback_recording(self,inputs:list):
-        self.playback_timer.reset()
         self.playback_inputs = inputs
         self.playback_enabled = True
 
         self.curr_playback_index = 0
 
         last_input = inputs[len(inputs)-1]
+        self.playback_timer.reset()
+        #wait for the recording to finish playing
         while self.playback_timer.time() < last_input[2]:
             pass
-            
-            
+        
         self.playback_enabled = False
 
         pass
 
+    
     def playback_update(self):
         if self.playback_enabled:
             if self.curr_playback_index <= len(self.playback_inputs)-1:
@@ -222,8 +221,8 @@ class DriveTrainCool():
 
                 if self.playback_timer.time() > curr_input[2]:
                     self.curr_playback_index += 1
-                    print(self.playback_inputs[self.curr_playback_index])
-
+                    # print(self.playback_inputs[self.curr_playback_index])
+                
                 self.set_drive_velocity(curr_input[0])
                 self.set_turn_velocity(curr_input[1])
 
@@ -236,9 +235,12 @@ class DriveTrainCool():
         self.process_instructions()
         self.playback_update()
 
+
         self.update_velocities()
 
+    def bind_to_update(self,func:function):
 
+        pass
 
 brain=Brain()
 
@@ -271,7 +273,7 @@ def Autonomous():
     Thread(AutonUpdateLoop)
     #sys.run_in_thread(AutonUpdateLoop)
     drivetrainCool.drive_for(time_length=1,velocity=100)
-
+    
     #   drivetrain.drive_for(DirectionType.FORWARD,10,DistanceUnits.IN)
 
 
