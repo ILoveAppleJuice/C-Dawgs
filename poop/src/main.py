@@ -16,7 +16,7 @@ def clamp(n, min, max):
     else:
         return n
 
-    # quick fix to define controller first cause its actually defined after th drive train class
+    # quick fix to declare controller first cause its actually defined after th drive train class
 controller:Controller = None
 
 
