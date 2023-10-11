@@ -49,7 +49,6 @@ class DriveTrainCool():
 
         self.playback_timer = Timer()
         self.playback_enabled = False
-        self.playback_inputs = []
 
         for motorIndex in range(len(self.motors)):
             self.motor_velocities.append(0)
@@ -155,32 +154,41 @@ class DriveTrainCool():
 
             motor.set_stopping(HOLD)
 
+
+    def record_input_update(self,input):
+        # if recording and the current input is different than the previous recorded input, add the new input into the list
+            
+
+            print(input,self.record_timer.system_high_res())
+
+            if input != self.last_input:
+                # define a variable called "instruction_packet" that contains the input and time since recording start
+                instruction_packet = [input[0],input[1],self.record_timer.system_high_res()]
+                self.recorded_inputs.append(instruction_packet)
     
+
     def process_controller_inputs(self):
 
         forward_input = controller.axis3.position()
-        turn_input = controller.axis1.position()
+        turn_input = controller.axis1.position()        
+
+        input = [forward_input,turn_input]
+
+        if self.recording_inputs:
+            self.record_input_update(input)
+        
+        self.last_input = input
 
         self.set_drive_velocity(forward_input)
         self.set_turn_velocity(turn_input)
-        
 
-        input = [forward_input,turn_input]
-        
-        if self.recording_inputs:
-            # if recording and the current input is different than the previous recorded input, add the new input into the list
-            if input != self.last_input:
-                # define a variable called "instruction_packet" that contains the input and time since recording start
-                instruction_packet = [forward_input,turn_input,self.record_timer.time()]
-                self.recorded_inputs.append(instruction_packet)
-        
-        self.last_input = input
 
         
     def toggle_recording_inputs(self, toggle:bool):
         self.recording_inputs = toggle
 
         if toggle:
+            self.recorded_inputs = []
             self.record_timer.reset()
         else:
             pass
@@ -197,34 +205,33 @@ class DriveTrainCool():
         inputs = json.loads(json_str)
         self.playback_recording(inputs)
 
+
+    
     def playback_recording(self,inputs:list):
-        self.playback_inputs = inputs
-        self.playback_enabled = True
 
         self.curr_playback_index = 0
-
-        last_input = inputs[len(inputs)-1]
         self.playback_timer.reset()
-        #wait for the recording to finish playing
-        while self.playback_timer.time() < last_input[2]:
-            pass
-        
-        self.playback_enabled = False
 
-        pass
+        self.playback_enabled = True
+
+
+        self.input_packet = inputs[self.curr_playback_index]
+        while self.curr_playback_index <= len(inputs)-1:
+            self.input_packet = inputs[self.curr_playback_index]
+
+            print(self.input_packet, self.playback_timer.system_high_res())
+
+            if self.playback_timer.system_high_res() > self.input_packet[2]:
+                self.curr_playback_index += 1
+
+        self.playback_enabled = False
 
     
     def playback_update(self):
         if self.playback_enabled:
-            if self.curr_playback_index <= len(self.playback_inputs)-1:
-                curr_input = self.playback_inputs[self.curr_playback_index]
-
-                if self.playback_timer.time() > curr_input[2]:
-                    self.curr_playback_index += 1
-                    # print(self.playback_inputs[self.curr_playback_index])
+            self.set_drive_velocity(self.input_packet[0])
+            self.set_turn_velocity(self.input_packet[1])
                 
-                self.set_drive_velocity(curr_input[0])
-                self.set_turn_velocity(curr_input[1])
 
     
     def Update(self):
@@ -233,10 +240,18 @@ class DriveTrainCool():
             
         self.process_controller_inputs()
         self.process_instructions()
-        self.playback_update()
+        
+        if self.playback_enabled:
+            self.playback_update()
 
+        if controller.buttonR1.pressing():
+            SpinIntake(True,100)
+        if controller.buttonR2.pressing():
+            SpinIntake(False,100)
 
-        self.update_velocities()
+        #print(self.get_motor_velocities())
+
+        #self.update_velocities()
 
     def bind_to_update(self,func:function):
 
@@ -246,16 +261,32 @@ brain=Brain()
 
 
 # left motors first then right
-motorPorts = [20,15,10,5]
+# back to front
+motorPorts = [10,20,1,11]
 motors = []
+
+intake_motor_ports = [18,19]
+intake_motors = []
+for motor_index in range(len(intake_motor_ports)):
+    motor_port = intake_motor_ports[motor_index]
+    intake_motor = Motor(motor_port,motor_index%2!=0)
+    intake_motors.append(intake_motor)
 
 # creating a list of motor objects to pass into our custom drive train class
 for i in motorPorts:
     motors.append(Motor(i-1))
 
-
 controller = Controller(ControllerType.PRIMARY)
 drivetrainCool = DriveTrainCool(motors)
+
+
+def SpinIntake(inward,velocity):
+    motor:Motor = None
+    for motor in intake_motors:
+        if inward:
+            motor.spin(DirectionType.FORWARD,velocity,PERCENT)
+        else:
+            motor.spin(DirectionType.REVERSE,velocity,PERCENT)
 
 
 def Autonomous():
@@ -288,29 +319,41 @@ def DriverControl():
 
 
 
+def BPressed():
+    if drivetrainCool.recording_inputs:
+        drivetrainCool.toggle_recording_inputs(False)
+        controller.rumble("..")
+        
+    else:
+        controller.rumble(".")
+        time.sleep(0.1)
+        drivetrainCool.toggle_recording_inputs(True)
 
-comp = Competition(DriverControl, Autonomous)
+def APressed():
+    if drivetrainCool.recording_inputs:
+        return
+    
+    controller.rumble("-")
+    recording = drivetrainCool.get_recorded_inputs()
+    print(recording)
+    # recording_json = drivetrainCool.get_recorded_inputs_json()
+    # print(recording_json)
+    # drivetrainCool.playback_json_recording(recording_json)
+
+    drivetrainCool.playback_recording(recording)
+
+controller.buttonB.pressed(BPressed)
+controller.buttonA.pressed(APressed)
+
 
 def Test():
-    #drivetrainCool.turn_for(time_length=1,velocity=5)
-    #drivetrainCool.drive_for(time_length=1,velocity=20)
-    drivetrainCool.toggle_recording_inputs(True)
-    time.sleep(2)
-    drivetrainCool.toggle_recording_inputs(False)
-
-    recording_json = drivetrainCool.get_recorded_inputs_json()
     
-    print(recording_json)
-    
-    #drivetrainCool.drive_for(time_length=1.0,velocity=40)
-    time.sleep(2)
-    drivetrainCool.playback_json_recording(recording_json)
-    #drivetrainCool.turn_for(time_length=0.7,velocity=-20)
+    pass
 
 
-
-Test()
+comp = Competition(DriverControl, Autonomous)
 if comp.is_enabled():
     pass
 else:
+    Test()
     pass
